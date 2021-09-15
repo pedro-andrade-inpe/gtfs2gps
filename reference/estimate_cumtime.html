@@ -134,7 +134,7 @@ speed of the valid GPS rows." />
 speed of the valid GPS rows.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>estimate_cumtime</span><span class='op'>(</span><span class='va'>gps_data</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>estimate_cumtime</span><span class='op'>(</span><span class='va'>gps_data</span>, min_speed <span class='op'>=</span> <span class='fl'>2</span>, max_speed <span class='op'>=</span> <span class='fl'>80</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
@@ -142,6 +142,16 @@ speed of the valid GPS rows.</p>
     <tr>
       <th>gps_data</th>
       <td><p>A data.table with GPS-like rows.</p></td>
+    </tr>
+    <tr>
+      <th>min_speed</th>
+      <td><p>Minimum speed to be considered as valid. Values below minimum
+speed will be estimated as if they were NA. Default value is 2km/h.</p></td>
+    </tr>
+    <tr>
+      <th>max_speed</th>
+      <td><p>Maximum speed to be considered as valid. Values above maximum
+speed will be estimated as if they were NA. Default value is 80km/h.</p></td>
     </tr>
     </table>
 
@@ -156,7 +166,7 @@ below 2km/h are also ignored and their values will be updated with the average.<
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
     <pre class="examples"><div class='input'><span class='va'>poa</span> <span class='op'>&lt;-</span> <span class='fu'><a href='read_gtfs.html'>read_gtfs</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span><span class='op'>(</span><span class='st'>"extdata/poa.zip"</span>, package<span class='op'>=</span><span class='st'>"gtfs2gps"</span><span class='op'>)</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='message'>Unzipped the following files to /tmp/RtmpkoOdvC/gtfsio:</span>
+</div><div class='output co'>#&gt; <span class='message'>Unzipped the following files to /tmp/RtmpWzLBeL/gtfsio:</span>
 #&gt; <span class='message'>  * agency.txt</span>
 #&gt; <span class='message'>  * calendar.txt</span>
 #&gt; <span class='message'>  * routes.txt</span>
