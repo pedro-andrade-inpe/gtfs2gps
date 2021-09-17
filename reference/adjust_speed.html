@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Converts a GPS-like data.table to a LineString Simple Feature (sf) object — gps_as_sflinestring • gtfs2gps</title>
+<title>Estimate cumtime based on global speed — adjust_speed • gtfs2gps</title>
 
 
 <!-- jquery -->
@@ -39,10 +39,9 @@
 
 
 
-<meta property="og:title" content="Converts a GPS-like data.table to a LineString Simple Feature (sf) object — gps_as_sflinestring" />
-<meta property="og:description" content="Every interval of GPS data points between stops for each trip_id is
- converted into a linestring segment. The output assumes constant average speed 
- between consecutive stops." />
+<meta property="og:title" content="Estimate cumtime based on global speed — adjust_speed" />
+<meta property="og:description" content="Estimate cumtime of NA values of a GPS data based on the average
+speed of the valid GPS rows." />
 
 
 
@@ -125,41 +124,54 @@
 <div class="row">
   <div class="col-md-9 contents">
     <div class="page-header">
-    <h1>Converts a GPS-like data.table to a LineString Simple Feature (sf) object</h1>
-    <small class="dont-index">Source: <a href='https://github.com/ipeaGIT/gtfs2gps/blob/master/R/gps_as_sflinestring.R'><code>R/gps_as_sflinestring.R</code></a></small>
-    <div class="hidden name"><code>gps_as_sflinestring.Rd</code></div>
+    <h1>Estimate cumtime based on global speed</h1>
+    <small class="dont-index">Source: <a href='https://github.com/ipeaGIT/gtfs2gps/blob/master/R/adjust_speed.R'><code>R/adjust_speed.R</code></a></small>
+    <div class="hidden name"><code>adjust_speed.Rd</code></div>
     </div>
 
     <div class="ref-description">
-    <p>Every interval of GPS data points between stops for each trip_id is
- converted into a linestring segment. The output assumes constant average speed 
- between consecutive stops.</p>
+    <p>Estimate cumtime of NA values of a GPS data based on the average
+speed of the valid GPS rows.</p>
     </div>
 
-    <pre class="usage"><span class='fu'>gps_as_sflinestring</span><span class='op'>(</span><span class='va'>gps</span>, crs <span class='op'>=</span> <span class='fl'>4326</span><span class='op'>)</span></pre>
+    <pre class="usage"><span class='fu'>adjust_speed</span><span class='op'>(</span><span class='va'>gps_data</span>, min_speed <span class='op'>=</span> <span class='fl'>2</span>, max_speed <span class='op'>=</span> <span class='fl'>80</span>, new_speed <span class='op'>=</span> <span class='cn'>NULL</span><span class='op'>)</span></pre>
 
     <h2 class="hasAnchor" id="arguments"><a class="anchor" href="#arguments"></a>Arguments</h2>
     <table class="ref-arguments">
     <colgroup><col class="name" /><col class="desc" /></colgroup>
     <tr>
-      <th>gps</th>
-      <td><p>A data.table with timestamp data.</p></td>
+      <th>gps_data</th>
+      <td><p>A data.table with GPS-like rows.</p></td>
     </tr>
     <tr>
-      <th>crs</th>
-      <td><p>A Coordinate Reference System. The default value is 4326 (latlong WGS84).</p></td>
+      <th>min_speed</th>
+      <td><p>Minimum speed to be considered as valid. Values below minimum
+speed will be estimated as if they were NA. Default value is 2km/h.</p></td>
+    </tr>
+    <tr>
+      <th>max_speed</th>
+      <td><p>Maximum speed to be considered as valid. Values above maximum
+speed will be estimated as if they were NA. Default value is 80km/h.</p></td>
+    </tr>
+    <tr>
+      <th>new_speed</th>
+      <td><p>Speed to replace missing values as well as values outside
+min_speed and max_speed range. The default value is the average speed of the
+gps data.</p></td>
     </tr>
     </table>
 
     <h2 class="hasAnchor" id="value"><a class="anchor" href="#value"></a>Value</h2>
 
-    <p>A simple feature (sf) object with LineString data.</p>
+    <p>A GPS data with updated values of cumtime.</p>
+    <h2 class="hasAnchor" id="details"><a class="anchor" href="#details"></a>Details</h2>
+
+    <p>This function estimates speed values using the average speed of the
+whole GPS data, ignoring infinite, NA, and NAN values. Values above 80km/h and
+below 2km/h are also ignored and their values will be updated with the average.</p>
 
     <h2 class="hasAnchor" id="examples"><a class="anchor" href="#examples"></a>Examples</h2>
-    <pre class="examples"><div class='input'><span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://github.com/ipeaGIT/gtfs2gps'>gtfs2gps</a></span><span class='op'>)</span>
-<span class='kw'><a href='https://rdrr.io/r/base/library.html'>library</a></span><span class='op'>(</span><span class='va'><a href='https://dplyr.tidyverse.org'>dplyr</a></span><span class='op'>)</span>
-
-<span class='va'>poa</span> <span class='op'>&lt;-</span> <span class='fu'><a href='read_gtfs.html'>read_gtfs</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span><span class='op'>(</span><span class='st'>"extdata/poa.zip"</span>, package <span class='op'>=</span> <span class='st'>"gtfs2gps"</span><span class='op'>)</span><span class='op'>)</span>
+    <pre class="examples"><div class='input'><span class='va'>poa</span> <span class='op'>&lt;-</span> <span class='fu'><a href='read_gtfs.html'>read_gtfs</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/system.file.html'>system.file</a></span><span class='op'>(</span><span class='st'>"extdata/poa.zip"</span>, package<span class='op'>=</span><span class='st'>"gtfs2gps"</span><span class='op'>)</span><span class='op'>)</span>
 </div><div class='output co'>#&gt; <span class='message'>Unzipped the following files to /tmp/RtmpnjTNu6/gtfsio:</span>
 #&gt; <span class='message'>  * agency.txt</span>
 #&gt; <span class='message'>  * calendar.txt</span>
@@ -167,12 +179,15 @@
 #&gt; <span class='message'>  * shapes.txt</span>
 #&gt; <span class='message'>  * stop_times.txt</span>
 #&gt; <span class='message'>  * stops.txt</span>
-#&gt; <span class='message'>  * trips.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading agency.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading calendar.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading routes.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading shapes.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading stop_times.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading stops.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading trips.txt</span></div><div class='input'><span class='va'>poa_subset</span> <span class='op'>&lt;-</span> <span class='fu'><a href='filter_by_shape_id.html'>filter_by_shape_id</a></span><span class='op'>(</span><span class='va'>poa</span>, <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"T2-1"</span>, <span class='st'>"A141-1"</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
-  <span class='fu'><a href='filter_single_trip.html'>filter_single_trip</a></span><span class='op'>(</span><span class='op'>)</span>
-
-<span class='va'>poa_gps</span> <span class='op'>&lt;-</span> <span class='fu'><a href='gtfs2gps.html'>gtfs2gps</a></span><span class='op'>(</span><span class='va'>poa_subset</span><span class='op'>)</span>
-</div><div class='output co'>#&gt; <span class='message'>Converting shapes to sf objects</span></div><div class='output co'>#&gt; <span class='message'>Processing the data</span></div><div class='output co'>#&gt; <span class='message'>3 'speed' values are NA for shapeid 'A141-1'.</span></div><div class='output co'>#&gt; <span class='message'>9 'speed' values are NA for shapeid 'T2-1'.</span></div><div class='output co'>#&gt; <span class='message'>Some 'speed' values are NA in the returned data.</span></div><div class='input'>
-<span class='va'>poa_gps_sf</span> <span class='op'>&lt;-</span> <span class='fu'>gps_as_sflinestring</span><span class='op'>(</span><span class='va'>poa_gps</span><span class='op'>)</span>
+#&gt; <span class='message'>  * trips.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading agency.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading calendar.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading routes.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading shapes.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading stop_times.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading stops.txt</span></div><div class='output co'>#&gt; <span class='message'>Reading trips.txt</span></div><div class='input'>
+<span class='va'>poa_gps</span> <span class='op'>&lt;-</span> <span class='fu'><a href='gtfs2gps.html'>gtfs2gps</a></span><span class='op'>(</span><span class='va'>poa</span><span class='op'>)</span>
+</div><div class='output co'>#&gt; <span class='message'>Converting shapes to sf objects</span></div><div class='output co'>#&gt; <span class='message'>Processing the data</span></div><div class='output co'>#&gt; <span class='message'></span>
+#&gt; <span class='message'>Attaching package: ‘data.table’</span></div><div class='output co'>#&gt; <span class='message'>The following object is masked from ‘package:purrr’:</span>
+#&gt; <span class='message'></span>
+#&gt; <span class='message'>    transpose</span></div><div class='output co'>#&gt; <span class='message'>Linking to GEOS 3.6.2, GDAL 2.2.3, PROJ 4.9.3</span></div><div class='output co'>#&gt; <span class='message'></span>
+#&gt; <span class='message'>Attaching package: ‘magrittr’</span></div><div class='output co'>#&gt; <span class='message'>The following object is masked from ‘package:purrr’:</span>
+#&gt; <span class='message'></span>
+#&gt; <span class='message'>    set_names</span></div><div class='output co'>#&gt; <span class='message'>udunits database from /usr/share/xml/udunits/udunits2.xml</span></div><div class='output co'>#&gt; <span class='message'>73 'speed' values are NA for shapeid '176-1'.</span></div><div class='output co'>#&gt; <span class='message'>30 'speed' values are NA for shapeid 'A141-1'.</span></div><div class='output co'>#&gt; <span class='message'>108 'speed' values are NA for shapeid 'R10-2'.</span></div><div class='output co'>#&gt; <span class='message'>1764 'speed' values are NA for shapeid 'T2-1'.</span></div><div class='output co'>#&gt; <span class='message'>Some 'speed' values are NA in the returned data.</span></div><div class='input'><span class='va'>poa_gps_new</span> <span class='op'>&lt;-</span> <span class='fu'>adjust_speed</span><span class='op'>(</span><span class='va'>poa_gps</span><span class='op'>)</span>
 </div></pre>
   </div>
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
