@@ -1,0 +1,70 @@
+# Write GTFS data into a zip file
+
+Write GTFS stored in memory as a list of data.tables into a zipped GTFS
+feed. This function overwrites the zip file if it exists.
+
+## Usage
+
+``` r
+write_gtfs(gtfs, zipfile, overwrite = TRUE, quiet = FALSE)
+```
+
+## Arguments
+
+- gtfs:
+
+  A GTFS data set stored in memory as a list of data.tables/data.frames.
+
+- zipfile:
+
+  The pathname of a .zip file to be saved with the GTFS data.
+
+- overwrite:
+
+  A logical. Whether to overwrite an existing `.zip` file. Defaults to
+  `TRUE`.
+
+- quiet:
+
+  A logical. Whether to hide log messages and progress bars. Defaults to
+  `TRUE`.
+
+## Value
+
+The status value returned by the external zip command, invisibly.
+
+## Examples
+
+``` r
+# read a gtfs.zip to memory
+poa <- read_gtfs(system.file("extdata/poa.zip", package = "gtfs2gps")) |>
+  gtfstools::filter_by_shape_id("T2-1") |>
+  filter_single_trip()
+#> Unzipped the following files to /tmp/RtmpkJZ388/gtfsio:
+#>   * agency.txt
+#>   * calendar.txt
+#>   * routes.txt
+#>   * shapes.txt
+#>   * stop_times.txt
+#>   * stops.txt
+#>   * trips.txt
+#> Reading agency
+#> Reading calendar
+#> Reading routes
+#> Reading shapes
+#> Reading stop_times
+#> Reading stops
+#> Reading trips
+
+# write GTFS data into a zip file
+write_gtfs(poa, paste0(tempdir(), "/mypoa.zip"))
+#> Writing text files to /tmp/RtmpkJZ388/gtfsio1c602c8d7e5a
+#>   - Writing agency.txt
+#>   - Writing calendar.txt
+#>   - Writing routes.txt
+#>   - Writing shapes.txt
+#>   - Writing stop_times.txt
+#>   - Writing stops.txt
+#>   - Writing trips.txt
+#> GTFS object successfully zipped to /tmp/RtmpkJZ388/mypoa.zip
+```
