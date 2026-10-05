@@ -6,8 +6,12 @@
   * The package now requires R >= 4.1.0, because it uses the native pipe `|>`.
   * Fixed a bug in `write_gtfs()`, which ignored the `overwrite` argument and silently overwrote an existing file. With `overwrite = FALSE` it now raises an error of class `gtfs2gps_file_exists_error` if `zipfile` already exists.
   * `gtfs_shapes_as_sf()` now wraps `gtfstools::convert_shapes_to_sf()`. The `crs` argument transforms the shapes from WGS84 instead of relabelling their coordinates, and must be a valid CRS (`NA` is no longer accepted). The input is not modified. The result is a plain `sf` object (no longer also a `data.table`) with columns `shape_id`, `geometry` and `length`. `shape_id` must be character and `shape_pt_sequence` integer, as produced by `read_gtfs()`.
+  * Fixed two bugs in `gtfs2gps()` for shapes used by several trips:
+    * Trips were silently dropped when a shape was shared by more than one route; only the first route's trips were converted (e.g. 170 of the 348 trips in the bundled Berlin feed). All trips of a shape that have a `route_id` are now converted, each with its own `route_type`, and `trip_number` is the trip's index among all trips of the shape.
+    * Trips with a different stop pattern from the shape's longest trip had their times attached to the wrong stops, and could gain stops they do not serve. Stops are now snapped separately for each distinct stop pattern on a shape.
 
 * Minor changes
+  * `gtfs2gps()` is faster: speeds and timestamps between stops are now interpolated on plain vectors instead of per-segment data.table sub-assignments. Output is unchanged.
   * `write_gtfs()` now validates its arguments, and its documentation gives the correct default of `quiet` (`FALSE`) and return value (the GTFS data, invisibly).
   * New dependency: {cli}, used for the new classed error in `write_gtfs()`. Existing messages will be migrated to it gradually.
   * Internal code that duplicated {gtfstools} was removed: the frequency expansion inside `gtfs2gps()` (unreachable since v2.1-1, when `gtfstools::frequencies_to_stop_times()` took over) and the R-level time parser, now `gtfstools::convert_time_to_seconds()`. No output change for well-formed `H:MM:SS` times. In `gtfs2gps()` and `adjust_arrival_departure()`, malformed time strings (e.g. `"05:21"`, which used to parse to an arbitrary value) are now treated as missing.

@@ -41,4 +41,4 @@ if(getRversion() >= "2.15.1") utils::globalVariables(
     'N_intervals', 'as.ITime', 'from_stop_id', 'from_timestamp', 'i.from_stop_id',
     'i.from_timestamp', 'i.interval_status', 'i.shape_id', 'i.to_stop_id',
     'i.to_timestamp', 'interval_status', 'numbers', 'to_timestamp',
-    'time', 'timestamp', 'i.arrival_time'))
+    'time', 'timestamp', 'i.arrival_time', 'i.route_type'))

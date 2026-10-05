@@ -178,3 +178,65 @@ test_that("gtfs2gps", {
 
     
 })
+
+test_that("gtfs2gps converts every trip of a shared shape with its own stop pattern", {
+    poa <- read_gtfs(system.file("extdata/poa.zip", package="gtfs2gps"), quiet = TRUE)
+    poa <- gtfstools::filter_by_trip_id(poa, c("A141-1@1#30", "A141-1@1#520"))
+
+    # second trip: another route (different route_type) on the same shape ...
+    poa$routes <- rbind(poa$routes, poa$routes)
+    poa$routes[2, `:=`(route_id = "other_route", route_type = 0L)]
+    poa$trips[trip_id == "A141-1@1#520", route_id := "other_route"]
+
+    # ... and a different stop pattern: it skips stop_sequence 2
+    poa$stop_times <- poa$stop_times[!(trip_id == "A141-1@1#520" & stop_sequence == 2)]
+
+    poa_old <- data.table::copy(poa)
+    result <- gtfs2gps(poa, parallel = FALSE, quiet = TRUE)
+    expect_equal(poa, poa_old)
+
+    # both trips are converted, each with the route_type of its own route
+    expect_setequal(unique(result$trip_id), c("A141-1@1#30", "A141-1@1#520"))
+    route_types <- unique(result[, c("trip_id", "route_type")])
+    expect_equal(route_types[trip_id == "A141-1@1#30"]$route_type, poa$routes$route_type[1])
+    expect_equal(route_types[trip_id == "A141-1@1#520"]$route_type, 0L)
+    expect_equal(sort(unique(result$trip_number)), 1:2)
+
+    # each trip only has the stops it serves
+    out_stops <- unique(result[!is.na(stop_id), c("trip_id", "stop_id", "stop_sequence")])
+    in_stops <- unique(poa$stop_times[, c("trip_id", "stop_id", "stop_sequence")])
+    expect_equal(nrow(data.table::fsetdiff(out_stops, in_stops)), 0)  # no made-up stops
+    expect_equal(nrow(data.table::fsetdiff(in_stops, out_stops)), 0)  # no lost stops
+    expect_false(any(result$trip_id == "A141-1@1#520" & result$stop_sequence %in% 2))
+})
+
+test_that("gtfs2gps keeps interpolated timestamps past midnight and matches in parallel", {
+    poa <- read_gtfs(system.file("extdata/poa.zip", package = "gtfs2gps"), quiet = TRUE) |>
+      gtfstools::filter_by_shape_id("T2-1") |>
+      filter_single_trip()
+
+    # only the first and the last stop of this trip are timed; move them across midnight
+    poa$stop_times[stop_sequence == min(stop_sequence),
+                   `:=`(arrival_time = "23:58:00", departure_time = "23:58:00")]
+    poa$stop_times[stop_sequence == max(stop_sequence),
+                   `:=`(arrival_time = "24:05:00", departure_time = "24:05:00")]
+
+    before <- data.table::copy(poa)
+    seq_res <- gtfs2gps(poa, parallel = FALSE, spatial_resolution = 50, quiet = TRUE)
+    expect_equal(poa, before)  # input not modified
+
+    # interpolated rows between the two stops keep values past 86400 s (the stop
+    # rows themselves are wrapped to ITime, as before)
+    expect_gt(max(as.integer(seq_res$timestamp), na.rm = TRUE), 86400)
+
+    # every row from the first stop's departure to the last stop has a speed
+    # (the first stop row has no incoming segment, so it is NA)
+    stop_rows <- which(!is.na(seq_res$stop_id))
+    span <- stop_rows[1]:stop_rows[length(stop_rows)]
+    expect_false(anyNA(seq_res$speed[span[-1]]))
+
+    # the workers load the installed package: reinstall before relying on this
+    # assertion after editing R/
+    par_res <- gtfs2gps(poa, parallel = TRUE, ncores = 2, spatial_resolution = 50, quiet = TRUE)
+    expect_identical(as.list(seq_res), as.list(par_res))
+})
