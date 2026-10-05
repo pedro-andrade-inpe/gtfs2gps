@@ -28,3 +28,24 @@ test_that("remove_invalid", {
   
   expect_equal(length(sp3$stops$stop_id), 0)
 })
+
+test_that("filter_valid_stop_times drops malformed times and keeps strings verbatim", {
+  poa <- read_gtfs(system.file("extdata/poa.zip", package="gtfs2gps"))
+
+  poa$stop_times[1, `:=`(arrival_time = "05:21", departure_time = "05:21:00")]
+  poa$stop_times[2, `:=`(arrival_time = "abc", departure_time = "05:21:00")]
+  poa$stop_times[3, `:=`(arrival_time = " 5:21:00", departure_time = "5:21:00")]
+  keys <- poa$stop_times[1:3, .(trip_id, stop_sequence)]
+  before <- data.table::copy(poa)
+
+  subset <- filter_valid_stop_times(poa)
+
+  # input data is not modified
+  expect_identical(poa, before)
+
+  # rows 1 and 2 dropped, row 3 kept with its strings untouched
+  kept <- subset$stop_times[keys, on = c("trip_id", "stop_sequence"), nomatch = NULL]
+  expect_equal(nrow(kept), 1)
+  expect_equal(kept$arrival_time, " 5:21:00")
+  expect_equal(kept$departure_time, "5:21:00")
+})

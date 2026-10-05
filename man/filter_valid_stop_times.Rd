@@ -7,15 +7,16 @@
 filter_valid_stop_times(gtfs_data)
 }
 \arguments{
-\item{gtfs_data}{A list of data.tables read using gtfs2gps::reag_gtfs().}
+\item{gtfs_data}{A list of data.tables read using gtfs2gps::read_gtfs().}
 }
 \value{
 A filtered GTFS data.
 }
 \description{
-Filter a GTFS data read using gtfs2gps::read_gtfs(). It removes stop_times
-with NA values in arrival_time, departure_time, and arrival_time_hms. It also filters
-stops and routes accordingly.
+Filter a GTFS data read using gtfs2gps::read_gtfs(). It removes
+stop_times whose arrival_time or departure_time is missing or is not a
+well-formed "H:MM:SS" time string (hours may exceed 24). It also filters stops and routes accordingly.
+The input data is not modified.
 }
 \examples{
 poa <- read_gtfs(system.file("extdata/poa.zip", package = "gtfs2gps"))

@@ -41,7 +41,7 @@ CRAN standard. When they conflict, Part A wins; flag the conflict in the plan.
 - Never use `library()`/`require()` in `R/`. Suggested packages are guarded
   with `requireNamespace("pkg", quietly = TRUE)`.
 - Column names used with non-standard evaluation go into the
-  `utils::globalVariables(c(...))` block in `R/utils.R` (`R/zzz.R` has a second,
+  `utils::globalVariables(c(...))` block in `R/zzz.R` (which also has a second,
   tiny one for `.` and `:=`). Append new names at the end; check for
   duplicates first.
 
@@ -73,7 +73,8 @@ gtfs2gps handles two kinds of objects:
   arguments are validated with `checkmate::assert_*` (already in Imports);
   enumerated options with `checkmate::assert_choice()` for a single value
   (e.g. `snap_method`), or `assert_names(subset.of =)` for several.
-- Times: `string_to_seconds()` / `seconds_to_string()` in `R/utils.R`
+- Times: `stop_times_to_seconds()` (in place; the caller copies first; strings not
+  matching `valid_gtfs_time` become `NA`) and `seconds_to_string()` in `R/utils.R`
   (`seconds_to_string()` needs an integer; wrap doubles in `as.integer()`).
   GTFS times may exceed 24:00:00; `adjust_speed()` wraps timestamps past
   86400 s. Keep that behaviour consistent when touching time code.
@@ -85,8 +86,8 @@ gtfs2gps handles two kinds of objects:
   `data.table::copy()`; `adjust_speed()` exposes `clone = TRUE`;
   `gps_as_sflinestring()` copies before adding columns. Any `:=`/`set*()` on
   a table reachable from the input must be preceded by a copy or guarded by
-  an explicit argument. Known legacy exception: `gtfs_shapes_as_sf()` calls
-  `data.table::setDT(gtfs$shapes)` on the input (backlog); don't copy it.
+  an explicit argument. (`gtfs_shapes_as_sf()` used to call `setDT()` on the
+  input; since 2026-10-05 it delegates to gtfstools and copies.)
 - Use `%chin%` for character membership, keyed / `on =` joins, and `by =`
   grouping. No new row-wise loops. `lapply` over shapes or trips followed by
   `data.table::rbindlist()` is the established pattern for per-group work.
