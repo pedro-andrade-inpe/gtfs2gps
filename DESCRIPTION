@@ -27,7 +27,7 @@ Imports:
       data.table,
       furrr,
       future,
-      gtfstools,
+      gtfstools (>= 1.3.0),
       Rcpp,
       units,
       sf,
