@@ -11,3 +11,9 @@ vignettes/*.zip
 /tests/test_ig.txt
 *.gif
 .Rprofile
+# Claude Code workflow (only CLAUDE.md + .claude/rules/ are tracked)
+/.claude/*
+!/.claude/rules/
+/MEMORY.md
+/templates/
+/quality_reports/
