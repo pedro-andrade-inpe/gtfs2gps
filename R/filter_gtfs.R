@@ -122,36 +122,34 @@ remove_invalid <- function(gtfs_data, only_essential = TRUE, prompt_invalid = FA
 }
 
 #' @title Filter GTFS data using valid stop times
-#' 
-#' @description Filter a GTFS data read using gtfs2gps::read_gtfs(). It removes stop_times
-#' with NA values in arrival_time, departure_time, and arrival_time_hms. It also filters
-#' stops and routes accordingly.
-#' @param gtfs_data A list of data.tables read using gtfs2gps::reag_gtfs().
-#' @return A filtered GTFS data. 
+#'
+#' @description Filter a GTFS data read using gtfs2gps::read_gtfs(). It removes
+#' stop_times whose arrival_time or departure_time is missing or is not a
+#' well-formed "H:MM:SS" time string (hours may exceed 24). It also filters stops and routes accordingly.
+#' The input data is not modified.
+#' @param gtfs_data A list of data.tables read using gtfs2gps::read_gtfs().
+#' @return A filtered GTFS data.
 #' @export
 #' @examples
 #' poa <- read_gtfs(system.file("extdata/poa.zip", package = "gtfs2gps"))
-#' 
+#'
 #' subset <- filter_valid_stop_times(poa)
 filter_valid_stop_times <- function(gtfs_data){
   gtfs_data <- data.table::copy(gtfs_data)
 
-  gtfs_data$stop_times[, departure_time := string_to_seconds(departure_time)]
-  gtfs_data$stop_times[, arrival_time := string_to_seconds(arrival_time)]
-
-  gtfs_data$stop_times <- subset(gtfs_data$stop_times, !is.na(arrival_time) & !is.na(departure_time))
+  # keep only well-formed "H:MM:SS" times, ignoring surrounding whitespace (NA,
+  # "" and malformed strings are dropped; grepl() returns FALSE for NA)
+  gtfs_data$stop_times <- gtfs_data$stop_times[grepl(valid_gtfs_time, trimws(arrival_time)) &
+                                                 grepl(valid_gtfs_time, trimws(departure_time))]
 
   stop_ids <- unique(gtfs_data$stop_times$stop_id)
   gtfs_data$stops <- subset(gtfs_data$stops, stop_id %in% stop_ids)
-  
+
   if(!is.null(gtfs_data$routes)){
     route_ids <- unique(gtfs_data$trips$route_id)
     gtfs_data$routes <- subset(gtfs_data$routes, route_id %in% route_ids)
   }
 
-  gtfs_data$stop_times[, departure_time := seconds_to_string(departure_time)]
-  gtfs_data$stop_times[, arrival_time := seconds_to_string(arrival_time)]
-  
   return(gtfs_data)
 }
 

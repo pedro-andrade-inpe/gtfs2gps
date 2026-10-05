@@ -49,3 +49,39 @@ test_that("write_gtfs", {
     expect_equal(dim(sp$shapes)[1], 35886)
     expect_equal(dim(sp$trips)[1], 92)
 })
+
+test_that("write_gtfs respects overwrite", {
+    poa_zip <- tempfile(pattern = 'poa_overwrite', fileext = '.zip')
+    on.exit(unlink(poa_zip), add = TRUE)
+
+    poa <- read_gtfs(system.file("extdata/poa.zip", package="gtfs2gps"))
+    poa_small <- gtfstools::filter_by_shape_id(poa, "T2-1")
+    expect_true(nrow(poa_small$trips) < nrow(poa$trips))
+    poa_small_old <- data.table::copy(poa_small)
+
+    # overwrite = FALSE on a new path: writes, returns the gtfs invisibly
+    expect_invisible(result <- write_gtfs(poa, zipfile = poa_zip, overwrite = FALSE, quiet = TRUE))
+    expect_s3_class(result, "dt_gtfs")
+    expect_true(file.exists(poa_zip))
+    size_before <- file.size(poa_zip)
+
+    # overwrite = FALSE: error, and the existing file is left untouched
+    expect_error(write_gtfs(poa_small, zipfile = poa_zip, overwrite = FALSE, quiet = TRUE),
+                 class = "gtfs2gps_file_exists_error")
+    expect_equal(file.size(poa_zip), size_before)
+
+    # invalid arguments
+    expect_error(write_gtfs(poa_small, zipfile = poa_zip, overwrite = NA, quiet = TRUE), "overwrite")
+    expect_error(write_gtfs(poa_small, zipfile = poa_zip, overwrite = "no", quiet = TRUE), "overwrite")
+    expect_error(write_gtfs(poa_small, zipfile = NULL, quiet = TRUE), "zipfile")
+    expect_error(write_gtfs(poa_small, zipfile = c("a.zip", "b.zip"), overwrite = FALSE, quiet = TRUE), "zipfile")
+    expect_error(write_gtfs(poa_small, zipfile = poa_zip, quiet = NA), "quiet")
+
+    # overwrite = TRUE (default): the file is replaced
+    write_gtfs(poa_small, zipfile = poa_zip, quiet = TRUE)
+    expect_true(file.size(poa_zip) < size_before)
+    expect_equal(nrow(read_gtfs(poa_zip)$trips), nrow(poa_small$trips))
+
+    # input data is not modified
+    expect_equal(poa_small, poa_small_old)
+})

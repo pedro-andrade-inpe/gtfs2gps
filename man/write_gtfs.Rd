@@ -12,17 +12,20 @@ write_gtfs(gtfs, zipfile, overwrite = TRUE, quiet = FALSE)
 \item{zipfile}{The pathname of a .zip file to be saved with the GTFS data.}
 
 \item{overwrite}{A logical. Whether to overwrite an existing \code{.zip} file.
-Defaults to \code{TRUE}.}
+If \code{FALSE} and \code{zipfile} already exists, an error is
+raised. Defaults to \code{TRUE}.}
 
 \item{quiet}{A logical. Whether to hide log messages and progress bars. 
-Defaults to \code{TRUE}.}
+Defaults to \code{FALSE}.}
 }
 \value{
-The status value returned by the external zip command, invisibly.
+The GTFS data, invisibly.
 }
 \description{
-Write GTFS stored in memory as a list of data.tables into a zipped GTFS feed.
-This function overwrites the zip file if it exists.
+Write GTFS stored in memory as a list of data.tables into a
+zipped GTFS feed, using \code{\link[gtfstools]{write_gtfs}}. By default an
+existing zip file is overwritten; set \code{overwrite = FALSE} to raise an
+error instead.
 }
 \examples{
 
