@@ -178,3 +178,34 @@ test_that("gtfs2gps", {
 
     
 })
+
+test_that("gtfs2gps converts every trip of a shared shape with its own stop pattern", {
+    poa <- read_gtfs(system.file("extdata/poa.zip", package="gtfs2gps"), quiet = TRUE)
+    poa <- gtfstools::filter_by_trip_id(poa, c("A141-1@1#30", "A141-1@1#520"))
+
+    # second trip: another route (different route_type) on the same shape ...
+    poa$routes <- rbind(poa$routes, poa$routes)
+    poa$routes[2, `:=`(route_id = "other_route", route_type = 0L)]
+    poa$trips[trip_id == "A141-1@1#520", route_id := "other_route"]
+
+    # ... and a different stop pattern: it skips stop_sequence 2
+    poa$stop_times <- poa$stop_times[!(trip_id == "A141-1@1#520" & stop_sequence == 2)]
+
+    poa_old <- data.table::copy(poa)
+    result <- gtfs2gps(poa, parallel = FALSE, quiet = TRUE)
+    expect_equal(poa, poa_old)
+
+    # both trips are converted, each with the route_type of its own route
+    expect_setequal(unique(result$trip_id), c("A141-1@1#30", "A141-1@1#520"))
+    route_types <- unique(result[, c("trip_id", "route_type")])
+    expect_equal(route_types[trip_id == "A141-1@1#30"]$route_type, poa$routes$route_type[1])
+    expect_equal(route_types[trip_id == "A141-1@1#520"]$route_type, 0L)
+    expect_equal(sort(unique(result$trip_number)), 1:2)
+
+    # each trip only has the stops it serves
+    out_stops <- unique(result[!is.na(stop_id), c("trip_id", "stop_id", "stop_sequence")])
+    in_stops <- unique(poa$stop_times[, c("trip_id", "stop_id", "stop_sequence")])
+    expect_equal(nrow(data.table::fsetdiff(out_stops, in_stops)), 0)  # no made-up stops
+    expect_equal(nrow(data.table::fsetdiff(in_stops, out_stops)), 0)  # no lost stops
+    expect_false(any(result$trip_id == "A141-1@1#520" & result$stop_sequence %in% 2))
+})
