@@ -1,5 +1,15 @@
 # log history of gtfs2gps package development
 
+# gtfs2gps (development version)
+
+* Major changes
+  * The package now requires R >= 4.1.0, because it uses the native pipe `|>`.
+  * Fixed a bug in `write_gtfs()`, which ignored the `overwrite` argument and silently overwrote an existing file. With `overwrite = FALSE` it now raises an error of class `gtfs2gps_file_exists_error` if `zipfile` already exists.
+
+* Minor changes
+  * `write_gtfs()` now validates its arguments, and its documentation gives the correct default of `quiet` (`FALSE`) and return value (the GTFS data, invisibly).
+  * New dependency: {cli}, used for the new classed error in `write_gtfs()`. Existing messages will be migrated to it gradually.
+
 # gtfs2gps v2.1-2
 
 * Minor changes

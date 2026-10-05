@@ -15,7 +15,7 @@ Description: Convert general transit feed specification (GTFS) data to global po
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends:
-    R (>= 3.5)
+    R (>= 4.1.0)
 Suggests:
     rmarkdown,
     markdown,
@@ -35,7 +35,8 @@ Imports:
       sfheaders,
       progressr,
       lwgeom,
-      checkmate
+      checkmate,
+      cli
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
 LinkingTo: Rcpp
