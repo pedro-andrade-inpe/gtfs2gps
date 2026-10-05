@@ -150,7 +150,7 @@ library(gtfs2gps)
 gtfs <- read_gtfs(system.file("extdata/poa.zip", package = "gtfs2gps")) |>
   gtfstools::filter_by_shape_id("T2-1") |>
   filter_single_trip()
-#> Unzipped the following files to /tmp/RtmpkJZ388/gtfsio:
+#> Unzipped the following files to /tmp/Rtmp9At6w8/gtfsio:
 #>   * agency.txt
 #>   * calendar.txt
 #>   * routes.txt
@@ -167,4 +167,5 @@ gtfs <- read_gtfs(system.file("extdata/poa.zip", package = "gtfs2gps")) |>
 #> Reading trips
   
 poa_gps <- progressr::with_progress(gtfs2gps(gtfs, quiet=TRUE))
+#> Warning: UNRELIABLE VALUE: Future (<unnamed-5>) unexpectedly generated random numbers without specifying argument 'seed'. There is a risk that those random numbers are not statistically sound and the overall results might be invalid. To fix this, specify 'seed=TRUE'. This ensures that proper, parallel-safe random numbers are produced. To disable this check, use 'seed=NULL', or set option 'future.rng.onMisuse' to "ignore". [future <unnamed-5> (1cf4aeccba27a5637abb58ab2086e1b8-5); on 1cf4aeccba27a5637abb58ab2086e1b8@runnervma94yk<6898>]
 ```

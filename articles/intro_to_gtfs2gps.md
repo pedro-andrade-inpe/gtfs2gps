@@ -15,6 +15,7 @@ scenario analyses. Before using the package, just install it from
 GitHub.
 
 ``` r
+
 install.packages("gtfs2gps")
 ```
 
@@ -27,10 +28,11 @@ objects. The returning list contains the data of each GTFS file indexed
 according to their file names without extension.
 
 ``` r
+
 library("gtfs2gps")
 #> gtfs2gps version 2.1-4 is now loaded
 poa <- read_gtfs(system.file("extdata/poa.zip", package ="gtfs2gps"))
-#> Unzipped the following files to /tmp/RtmpRVtxxm/gtfsio:
+#> Unzipped the following files to /tmp/RtmparEr45/gtfsio:
 #>   * agency.txt
 #>   * calendar.txt
 #>   * routes.txt
@@ -72,6 +74,7 @@ In the code below we filter only the shape ids \`c(“T2-1”, “A141-1”) to
 allow faster execution the next scripts.
 
 ``` r
+
 object.size(poa) |> format(units = "Kb")
 #> [1] "1145.7 Kb"
 poa_small <- gtfstools::filter_by_shape_id(poa, c("T2-1", "A141-1"))
@@ -83,6 +86,7 @@ We can then easily convert the data to simple feature format and plot
 them.
 
 ``` r
+
 poa_small_shapes_sf <- gtfs2gps::gtfs_shapes_as_sf(poa_small)
 poa_small_stops_sf <- gtfs2gps::gtfs_stops_as_sf(poa_small)
 plot(sf::st_geometry(poa_small_shapes_sf))
@@ -98,6 +102,7 @@ file using
 as shown below.
 
 ``` r
+
 temp_gtfs <- tempfile(pattern = 'poa_small', fileext = '.zip')
 
 gtfs2gps::write_gtfs(poa_small, temp_gtfs)
@@ -112,11 +117,12 @@ an input and returns a `data.table` where each row represents a
 ‘GPS-like’ data point for every trip in the GTFS file. In summary, this
 function interpolates the space-time position of each vehicle in each
 trip considering the network distance and average speed between stops.
-The function samples the timestamp of each vehicle every $15m$ by
+The function samples the timestamp of each vehicle every $`15m`$ by
 default, but the user can set a different value in the
 `spatial_resolution` argument. See the example below.
 
 ``` r
+
 poa_gps <- gtfs2gps(temp_gtfs, spatial_resolution = 100)
 #> Warning: UNRELIABLE VALUE: Future (<unnamed-1>) unexpectedly generated random
 #> numbers without specifying argument 'seed'. There is a risk that those random
@@ -124,16 +130,16 @@ poa_gps <- gtfs2gps(temp_gtfs, spatial_resolution = 100)
 #> To fix this, specify 'seed=TRUE'. This ensures that proper, parallel-safe
 #> random numbers are produced. To disable this check, use 'seed=NULL', or set
 #> option 'future.rng.onMisuse' to "ignore". [future <unnamed-1>
-#> (0bfda05fb08168d33f4ac1d72ba6dd54-1); on
-#> 0bfda05fb08168d33f4ac1d72ba6dd54@runnervmd7ynf<8288>]
+#> (7942f346e8d5bfc4cefa0fb4d362bf42-1); on
+#> 7942f346e8d5bfc4cefa0fb4d362bf42@runnervma94yk<7980>]
 #> Warning: UNRELIABLE VALUE: Future (<unnamed-2>) unexpectedly generated random
 #> numbers without specifying argument 'seed'. There is a risk that those random
 #> numbers are not statistically sound and the overall results might be invalid.
 #> To fix this, specify 'seed=TRUE'. This ensures that proper, parallel-safe
 #> random numbers are produced. To disable this check, use 'seed=NULL', or set
 #> option 'future.rng.onMisuse' to "ignore". [future <unnamed-2>
-#> (0bfda05fb08168d33f4ac1d72ba6dd54-2); on
-#> 0bfda05fb08168d33f4ac1d72ba6dd54@runnervmd7ynf<8288>]
+#> (7942f346e8d5bfc4cefa0fb4d362bf42-2); on
+#> 7942f346e8d5bfc4cefa0fb4d362bf42@runnervma94yk<7980>]
 head(poa_gps)
 #>    shape_id     trip_id route_type    id timestamp shape_pt_lon shape_pt_lat
 #>      <char>      <char>      <int> <int>   <ITime>        <num>        <num>
@@ -166,6 +172,7 @@ we processed. They can be converted to `simple feature` points or
 linestring.
 
 ``` r
+
 poa_gps60 <- poa_gps[1:100, ]
 
 # points
@@ -190,6 +197,7 @@ file. A sample data of a GTFS with detailed `stop_times.txt` cab be
 found below:
 
 ``` r
+
 poa <- system.file("extdata/poa.zip", package ="gtfs2gps")
 
 poa_gps <- gtfs2gps(poa, spatial_resolution = 50)
@@ -199,24 +207,24 @@ poa_gps <- gtfs2gps(poa, spatial_resolution = 50)
 #> To fix this, specify 'seed=TRUE'. This ensures that proper, parallel-safe
 #> random numbers are produced. To disable this check, use 'seed=NULL', or set
 #> option 'future.rng.onMisuse' to "ignore". [future <unnamed-3>
-#> (0bfda05fb08168d33f4ac1d72ba6dd54-3); on
-#> 0bfda05fb08168d33f4ac1d72ba6dd54@runnervmd7ynf<8288>]
+#> (7942f346e8d5bfc4cefa0fb4d362bf42-3); on
+#> 7942f346e8d5bfc4cefa0fb4d362bf42@runnervma94yk<7980>]
 #> Warning: UNRELIABLE VALUE: Future (<unnamed-4>) unexpectedly generated random
 #> numbers without specifying argument 'seed'. There is a risk that those random
 #> numbers are not statistically sound and the overall results might be invalid.
 #> To fix this, specify 'seed=TRUE'. This ensures that proper, parallel-safe
 #> random numbers are produced. To disable this check, use 'seed=NULL', or set
 #> option 'future.rng.onMisuse' to "ignore". [future <unnamed-4>
-#> (0bfda05fb08168d33f4ac1d72ba6dd54-4); on
-#> 0bfda05fb08168d33f4ac1d72ba6dd54@runnervmd7ynf<8288>]
+#> (7942f346e8d5bfc4cefa0fb4d362bf42-4); on
+#> 7942f346e8d5bfc4cefa0fb4d362bf42@runnervma94yk<7980>]
 #> Warning: UNRELIABLE VALUE: Future (<unnamed-5>) unexpectedly generated random
 #> numbers without specifying argument 'seed'. There is a risk that those random
 #> numbers are not statistically sound and the overall results might be invalid.
 #> To fix this, specify 'seed=TRUE'. This ensures that proper, parallel-safe
 #> random numbers are produced. To disable this check, use 'seed=NULL', or set
 #> option 'future.rng.onMisuse' to "ignore". [future <unnamed-5>
-#> (0bfda05fb08168d33f4ac1d72ba6dd54-5); on
-#> 0bfda05fb08168d33f4ac1d72ba6dd54@runnervmd7ynf<8288>]
+#> (7942f346e8d5bfc4cefa0fb4d362bf42-5); on
+#> 7942f346e8d5bfc4cefa0fb4d362bf42@runnervma94yk<7980>]
 
 poa_gps_sflinestrig <- gps_as_sfpoints(poa_gps)
 

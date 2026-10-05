@@ -12,8 +12,8 @@
 <link rel="icon" sizes="any" href="../favicon.ico">
 <link rel="manifest" href="../site.webmanifest">
 <script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="gtfs2gps: Converting GTFS data to GPS-like format">
 </head>
@@ -109,7 +109,7 @@ names without extension.</p>
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/ipeaGIT/gtfs2gps" class="external-link">"gtfs2gps"</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; gtfs2gps version 2.1-4 is now loaded</span></span>
 <span><span class="va">poa</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/read_gtfs.html">read_gtfs</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata/poa.zip"</span>, package <span class="op">=</span><span class="st">"gtfs2gps"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Unzipped the following files to /tmp/RtmpRVtxxm/gtfsio:</span></span>
+<span><span class="co">#&gt; Unzipped the following files to /tmp/RtmparEr45/gtfsio:</span></span>
 <span><span class="co">#&gt;   * agency.txt</span></span>
 <span><span class="co">#&gt;   * calendar.txt</span></span>
 <span><span class="co">#&gt;   * routes.txt</span></span>
@@ -148,7 +148,7 @@ to allow faster execution the next scripts.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/object.size.html" class="external-link">object.size</a></span><span class="op">(</span><span class="va">poa</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span>units <span class="op">=</span> <span class="st">"Kb"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "1145.7 Kb"</span></span>
-<span><span class="va">poa_small</span> <span class="op">&lt;-</span> <span class="fu">gtfstools</span><span class="fu">::</span><span class="fu"><a href="https://ipeagit.github.io/gtfstools/reference/filter_by_shape_id.html" class="external-link">filter_by_shape_id</a></span><span class="op">(</span><span class="va">poa</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"T2-1"</span>, <span class="st">"A141-1"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">poa_small</span> <span class="op">&lt;-</span> <span class="fu">gtfstools</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/gtfstools/man/filter_by_shape_id.html" class="external-link">filter_by_shape_id</a></span><span class="op">(</span><span class="va">poa</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"T2-1"</span>, <span class="st">"A141-1"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/object.size.html" class="external-link">object.size</a></span><span class="op">(</span><span class="va">poa_small</span><span class="op">)</span> <span class="op">|&gt;</span> <span class="fu"><a href="https://rdrr.io/r/base/format.html" class="external-link">format</a></span><span class="op">(</span>units <span class="op">=</span> <span class="st">"Kb"</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "559.5 Kb"</span></span></code></pre></div>
 <p>We can then easily convert the data to simple feature format and plot
@@ -188,16 +188,16 @@ by default, but the user can set a different value in the
 <span><span class="co">#&gt; To fix this, specify 'seed=TRUE'. This ensures that proper, parallel-safe</span></span>
 <span><span class="co">#&gt; random numbers are produced. To disable this check, use 'seed=NULL', or set</span></span>
 <span><span class="co">#&gt; option 'future.rng.onMisuse' to "ignore". [future &lt;unnamed-1&gt;</span></span>
-<span><span class="co">#&gt; (0bfda05fb08168d33f4ac1d72ba6dd54-1); on</span></span>
-<span><span class="co">#&gt; 0bfda05fb08168d33f4ac1d72ba6dd54@runnervmd7ynf&lt;8288&gt;]</span></span>
+<span><span class="co">#&gt; (7942f346e8d5bfc4cefa0fb4d362bf42-1); on</span></span>
+<span><span class="co">#&gt; 7942f346e8d5bfc4cefa0fb4d362bf42@runnervma94yk&lt;7980&gt;]</span></span>
 <span><span class="co">#&gt; Warning: UNRELIABLE VALUE: Future (&lt;unnamed-2&gt;) unexpectedly generated random</span></span>
 <span><span class="co">#&gt; numbers without specifying argument 'seed'. There is a risk that those random</span></span>
 <span><span class="co">#&gt; numbers are not statistically sound and the overall results might be invalid.</span></span>
 <span><span class="co">#&gt; To fix this, specify 'seed=TRUE'. This ensures that proper, parallel-safe</span></span>
 <span><span class="co">#&gt; random numbers are produced. To disable this check, use 'seed=NULL', or set</span></span>
 <span><span class="co">#&gt; option 'future.rng.onMisuse' to "ignore". [future &lt;unnamed-2&gt;</span></span>
-<span><span class="co">#&gt; (0bfda05fb08168d33f4ac1d72ba6dd54-2); on</span></span>
-<span><span class="co">#&gt; 0bfda05fb08168d33f4ac1d72ba6dd54@runnervmd7ynf&lt;8288&gt;]</span></span>
+<span><span class="co">#&gt; (7942f346e8d5bfc4cefa0fb4d362bf42-2); on</span></span>
+<span><span class="co">#&gt; 7942f346e8d5bfc4cefa0fb4d362bf42@runnervma94yk&lt;7980&gt;]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">poa_gps</span><span class="op">)</span></span>
 <span><span class="co">#&gt;    shape_id     trip_id route_type    id timestamp shape_pt_lon shape_pt_lat</span></span>
 <span><span class="co">#&gt;      &lt;char&gt;      &lt;char&gt;      &lt;int&gt; &lt;int&gt;   &lt;ITime&gt;        &lt;num&gt;        &lt;num&gt;</span></span>
@@ -254,24 +254,24 @@ GTFS with detailed <code>stop_times.txt</code> cab be found below:</p>
 <span><span class="co">#&gt; To fix this, specify 'seed=TRUE'. This ensures that proper, parallel-safe</span></span>
 <span><span class="co">#&gt; random numbers are produced. To disable this check, use 'seed=NULL', or set</span></span>
 <span><span class="co">#&gt; option 'future.rng.onMisuse' to "ignore". [future &lt;unnamed-3&gt;</span></span>
-<span><span class="co">#&gt; (0bfda05fb08168d33f4ac1d72ba6dd54-3); on</span></span>
-<span><span class="co">#&gt; 0bfda05fb08168d33f4ac1d72ba6dd54@runnervmd7ynf&lt;8288&gt;]</span></span>
+<span><span class="co">#&gt; (7942f346e8d5bfc4cefa0fb4d362bf42-3); on</span></span>
+<span><span class="co">#&gt; 7942f346e8d5bfc4cefa0fb4d362bf42@runnervma94yk&lt;7980&gt;]</span></span>
 <span><span class="co">#&gt; Warning: UNRELIABLE VALUE: Future (&lt;unnamed-4&gt;) unexpectedly generated random</span></span>
 <span><span class="co">#&gt; numbers without specifying argument 'seed'. There is a risk that those random</span></span>
 <span><span class="co">#&gt; numbers are not statistically sound and the overall results might be invalid.</span></span>
 <span><span class="co">#&gt; To fix this, specify 'seed=TRUE'. This ensures that proper, parallel-safe</span></span>
 <span><span class="co">#&gt; random numbers are produced. To disable this check, use 'seed=NULL', or set</span></span>
 <span><span class="co">#&gt; option 'future.rng.onMisuse' to "ignore". [future &lt;unnamed-4&gt;</span></span>
-<span><span class="co">#&gt; (0bfda05fb08168d33f4ac1d72ba6dd54-4); on</span></span>
-<span><span class="co">#&gt; 0bfda05fb08168d33f4ac1d72ba6dd54@runnervmd7ynf&lt;8288&gt;]</span></span>
+<span><span class="co">#&gt; (7942f346e8d5bfc4cefa0fb4d362bf42-4); on</span></span>
+<span><span class="co">#&gt; 7942f346e8d5bfc4cefa0fb4d362bf42@runnervma94yk&lt;7980&gt;]</span></span>
 <span><span class="co">#&gt; Warning: UNRELIABLE VALUE: Future (&lt;unnamed-5&gt;) unexpectedly generated random</span></span>
 <span><span class="co">#&gt; numbers without specifying argument 'seed'. There is a risk that those random</span></span>
 <span><span class="co">#&gt; numbers are not statistically sound and the overall results might be invalid.</span></span>
 <span><span class="co">#&gt; To fix this, specify 'seed=TRUE'. This ensures that proper, parallel-safe</span></span>
 <span><span class="co">#&gt; random numbers are produced. To disable this check, use 'seed=NULL', or set</span></span>
 <span><span class="co">#&gt; option 'future.rng.onMisuse' to "ignore". [future &lt;unnamed-5&gt;</span></span>
-<span><span class="co">#&gt; (0bfda05fb08168d33f4ac1d72ba6dd54-5); on</span></span>
-<span><span class="co">#&gt; 0bfda05fb08168d33f4ac1d72ba6dd54@runnervmd7ynf&lt;8288&gt;]</span></span>
+<span><span class="co">#&gt; (7942f346e8d5bfc4cefa0fb4d362bf42-5); on</span></span>
+<span><span class="co">#&gt; 7942f346e8d5bfc4cefa0fb4d362bf42@runnervma94yk&lt;7980&gt;]</span></span>
 <span></span>
 <span><span class="va">poa_gps_sflinestrig</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/gps_as_sfpoints.html">gps_as_sfpoints</a></span><span class="op">(</span><span class="va">poa_gps</span><span class="op">)</span></span>
 <span></span>
@@ -314,7 +314,7 @@ the GitHub page of the package <a href="https://github.com/ipeaGIT/gtfs2gps" cla
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

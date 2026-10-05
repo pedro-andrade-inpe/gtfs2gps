@@ -65,7 +65,7 @@ poa <- read_gtfs(system.file("extdata/poa.zip", package="gtfs2gps")) |>
   gtfstools::filter_by_shape_id("T2-1") |>
   gtfstools::filter_by_weekday(c("monday", "wednesday")) |>
   filter_single_trip()
-#> Unzipped the following files to /tmp/RtmpkJZ388/gtfsio:
+#> Unzipped the following files to /tmp/Rtmp9At6w8/gtfsio:
 #>   * agency.txt
 #>   * calendar.txt
 #>   * routes.txt
@@ -85,6 +85,7 @@ poa_gps <- gtfs2gps(poa)
 #> Converting shapes to sf objects
 #> Using 3 CPU cores
 #> Processing the data
+#> Warning: UNRELIABLE VALUE: Future (<unnamed-1>) unexpectedly generated random numbers without specifying argument 'seed'. There is a risk that those random numbers are not statistically sound and the overall results might be invalid. To fix this, specify 'seed=TRUE'. This ensures that proper, parallel-safe random numbers are produced. To disable this check, use 'seed=NULL', or set option 'future.rng.onMisuse' to "ignore". [future <unnamed-1> (1cf4aeccba27a5637abb58ab2086e1b8-1); on 1cf4aeccba27a5637abb58ab2086e1b8@runnervma94yk<6898>]
 #> Some 'speed' values are NA in the returned data.
 poa_gps_new <- adjust_speed(poa_gps)
 ```
