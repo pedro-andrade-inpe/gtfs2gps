@@ -209,3 +209,34 @@ test_that("gtfs2gps converts every trip of a shared shape with its own stop patt
     expect_equal(nrow(data.table::fsetdiff(in_stops, out_stops)), 0)  # no lost stops
     expect_false(any(result$trip_id == "A141-1@1#520" & result$stop_sequence %in% 2))
 })
+
+test_that("gtfs2gps keeps interpolated timestamps past midnight and matches in parallel", {
+    poa <- read_gtfs(system.file("extdata/poa.zip", package = "gtfs2gps"), quiet = TRUE) |>
+      gtfstools::filter_by_shape_id("T2-1") |>
+      filter_single_trip()
+
+    # only the first and the last stop of this trip are timed; move them across midnight
+    poa$stop_times[stop_sequence == min(stop_sequence),
+                   `:=`(arrival_time = "23:58:00", departure_time = "23:58:00")]
+    poa$stop_times[stop_sequence == max(stop_sequence),
+                   `:=`(arrival_time = "24:05:00", departure_time = "24:05:00")]
+
+    before <- data.table::copy(poa)
+    seq_res <- gtfs2gps(poa, parallel = FALSE, spatial_resolution = 50, quiet = TRUE)
+    expect_equal(poa, before)  # input not modified
+
+    # interpolated rows between the two stops keep values past 86400 s (the stop
+    # rows themselves are wrapped to ITime, as before)
+    expect_gt(max(as.integer(seq_res$timestamp), na.rm = TRUE), 86400)
+
+    # every row from the first stop's departure to the last stop has a speed
+    # (the first stop row has no incoming segment, so it is NA)
+    stop_rows <- which(!is.na(seq_res$stop_id))
+    span <- stop_rows[1]:stop_rows[length(stop_rows)]
+    expect_false(anyNA(seq_res$speed[span[-1]]))
+
+    # the workers load the installed package: reinstall before relying on this
+    # assertion after editing R/
+    par_res <- gtfs2gps(poa, parallel = TRUE, ncores = 2, spatial_resolution = 50, quiet = TRUE)
+    expect_identical(as.list(seq_res), as.list(par_res))
+})
