@@ -25,7 +25,8 @@ update_dt <- function(tripid, new_stoptimes, gtfs_data, all_tripids){
   
   # ignore trip_id if original departure_time values are missing
   if(is.null(length(stop_id_ok)) == TRUE | length(stop_id_ok) == 1 | length(stop_id_ok) == 0){ 
-    message(paste0("Trip '", all_tripids[tripid], "' has less than two stop_ids. Ignoring it.")) # nocov
+    cli::cli_inform( # nocov start
+      "Trip {.val {all_tripids[tripid]}} has less than two stop_ids. Ignoring it.") # nocov end
     return(NULL) # nocov
   }
   
@@ -47,51 +48,58 @@ update_dt <- function(tripid, new_stoptimes, gtfs_data, all_tripids){
   new_stoptimes[, timestamp := data.table::as.ITime(departure_time)]
   
   new_stoptimes[1, speed := 1e-12]
-  new_stoptimes[lim0 + 1, speed := 1e-12]
   new_stoptimes[, cumtime := 0]
-  new_stoptimes[, time := 0]
-  
+
   last_point_was_stop <- FALSE
-  
+
   lim0 <- new_stoptimes[ !is.na(timestamp) & !is.na(stop_id), id]
-  #  function for speed estimation
-  update_speeds <- function(i){
+
+  # speed, cumtime and timestamp are computed on plain vectors: a data.table
+  # sub-assignment per segment dominated gtfs2gps() run time. ts is unclassed so
+  # that [.ITime and round.ITime (which rounds to hours) never dispatch.
+  ts  <- as.integer(new_stoptimes$timestamp)
+  cd  <- new_stoptimes$cumdist
+  spd <- new_stoptimes$speed
+  ctm <- new_stoptimes$cumtime
+
+  for(i in 1:(length(lim0) - 1)){
     a <- lim0[i]
     b <- lim0[i + 1]
-    
-    diff_timestamp <- new_stoptimes$timestamp[b] - new_stoptimes$timestamp[a]
-    if(diff_timestamp < 0) diff_timestamp <- diff_timestamp + 86400 # one day in seconds
-    
+
+    dt <- ts[b] - ts[a]
+    if(dt < 0) dt <- dt + 86400 # one day in seconds
+
     if(a + 1 == b && !last_point_was_stop) {
-      last_point_was_stop <<- TRUE
-      value <- new_stoptimes[a, cumtime] + diff_timestamp
-      new_stoptimes[b, cumtime := value]
-      new_stoptimes[b, speed := 1e-12]
-      return() # two consecutive points with arrival_time don't need to be interpolated
+      # two consecutive points with arrival_time don't need to be interpolated
+      last_point_was_stop <- TRUE
+      ctm[b] <- ctm[a] + dt
+      spd[b] <- 1e-12
+      next
     }
-    
-    new_speed <- (new_stoptimes$cumdist[b] - new_stoptimes$cumdist[a]) / as.numeric(diff_timestamp) # m/s
-    
-    new_stoptimes[a:b, speed := 3.6 * new_speed] # km/h
-    
-    time_a <- new_stoptimes[a, cumtime]
-    
-    new_stoptimes[a:b, time := (cumdist - data.table::shift(cumdist, 1)) / new_speed]
-    
-    new_stoptimes[a, time := time_a] # necessary because the shift above will produce NA
-    
-    new_stoptimes[a:b, cumtime := cumsum(time)]
-    
-    new_stoptimes[a, speed := 1e-12]
-    
-    new_stoptimes[a:(b-1), timestamp := data.table::first(timestamp) + round(cumtime - data.table::first(cumtime))]
-    last_point_was_stop <<- FALSE
+
+    # m/s; NaN when the pair has neither distance nor time, Inf when it has
+    # distance but no time (identical stop times); never -Inf (cumdist is non-decreasing)
+    v <- (cd[b] - cd[a]) / as.numeric(dt)
+
+    spd[a:b] <- 3.6 * v # km/h
+
+    # cumsum restarted from the stored cumtime[a] of each segment on purpose:
+    # R accumulates cumsum in long double, so one cumsum over the whole trip
+    # would differ in the last bits
+    ctm[a:b] <- cumsum(c(ctm[a], diff(cd[a:b]) / v))
+
+    spd[a] <- 1e-12
+
+    ts[a:(b - 1)] <- as.integer(ts[a] + round(ctm[a:(b - 1)] - ctm[a]))
+    last_point_was_stop <- FALSE
   }
-  
-  lapply(1:(length(lim0) - 1), FUN = update_speeds)
-  
+
+  # structure() rather than as.ITime(): the latter wraps values >= 86400, which
+  # interpolated rows past midnight legitimately carry (adjust_speed() unwraps)
+  data.table::set(new_stoptimes, j = c("speed", "cumtime", "timestamp")
+                  , value = list(spd, ctm, structure(ts, class = "ITime")))
+
   new_stoptimes[is.na(speed), cumtime := NA]
-  new_stoptimes[, time := NULL]
   
   # Get lag
   #new_stoptimes[!is.na(departure_time) & !is.na(stop_id)
@@ -133,14 +141,6 @@ update_dt <- function(tripid, new_stoptimes, gtfs_data, all_tripids){
   # round
   #  new_stoptimes[, timestamp := round(timestamp)]
   #  new_stoptimes[, arrival_time := round(arrival_time)]
-  
-  if(is.null(new_stoptimes)){
-    message(paste0("Could not create stop times for trip '", 
-                   all_tripids[tripid], "'. Ignoring it.")) # nocov
-  }
-  else if(dim(new_stoptimes)[1] == 0)
-    message(paste0("Trip '", all_tripids[tripid], 
-                   "' has zero GPS points. Ignoring it.")) # nocov
   
   return(new_stoptimes)
 }
