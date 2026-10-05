@@ -140,8 +140,7 @@ gtfs2gps <- function(gtfs_data,
   }  
   
   # convert departure and arrival times from strings to seconds
-  gtfs_data$stop_times[, departure_time := string_to_seconds(departure_time)]
-  gtfs_data$stop_times[, arrival_time := string_to_seconds(arrival_time)]
+  gtfs_data <- stop_times_to_seconds(gtfs_data)
   
   # Convert all shapes into sf objects
   message("Converting shapes to sf objects")
@@ -273,7 +272,7 @@ gtfs2gps <- function(gtfs_data,
     }
     
     ###### PART 2.2 Function recalculate new stop_times for each trip id of each Shape id ------------------------------
-    new_stoptimes <- lapply(X = seq_along(all_tripids), FUN = update_freq,
+    new_stoptimes <- lapply(X = seq_along(all_tripids), FUN = update_dt,
                             new_stoptimes, gtfs_data, all_tripids)
     
     new_stoptimes <- data.table::rbindlist(new_stoptimes)

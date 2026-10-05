@@ -7,17 +7,24 @@
 gtfs_shapes_as_sf(gtfs, crs = 4326)
 }
 \arguments{
-\item{gtfs}{A GTFS data.}
+\item{gtfs}{A GTFS data. \code{shape_id} must be character and
+\code{shape_pt_sequence} integer, as produced by \code{\link{read_gtfs}}.}
 
-\item{crs}{The coordinate reference system represented as an EPSG code.
-The default value is 4326 (latlong WGS84)}
+\item{crs}{The coordinate reference system of the output: an EPSG code, a
+string accepted by \code{\link[sf]{st_crs}}, or a \code{crs} object. Shapes
+are read as WGS84 (EPSG:4326) and transformed to \code{crs}. The default
+value is 4326 (no transformation). It must be a valid CRS: \code{NA} or an
+unknown CRS raises an error of class \code{gtfs2gps_crs_error}.}
 }
 \value{
-A simple feature (sf) object.
+A simple feature (sf) object with columns \code{shape_id},
+\code{geometry} and \code{length} (km).
 }
 \description{
-Convert a GTFS shapes data loaded using gtfs2gps::read_gtf()
-into a line simple feature (sf).
+Convert the shapes of a GTFS data loaded using
+\code{\link{read_gtfs}} into a LINESTRING simple feature (sf) object, using
+\code{\link[gtfstools]{convert_shapes_to_sf}}, and add the length of each
+shape in kilometres. The input data is not modified.
 }
 \examples{
 poa <- read_gtfs(system.file("extdata/saopaulo.zip", package = "gtfs2gps"))

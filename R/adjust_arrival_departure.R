@@ -14,6 +14,8 @@
 #' is smaller than `min_lag`, it reduces the `arrival_time` and increases
 #' `departure_time` so that the difference will be exactly `min_lag`.
 #'
+#' The input GTFS data is not modified.
+#'
 #' @param gtfs_data A GTFS data created with \code{\link{read_gtfs}}.
 #' @param min_lag Numeric. Minimum waiting time when a vehicle arrives 
 #' at a stop. It can be a numeric or a units value that can be converted
@@ -26,33 +28,35 @@
 #'
 #' poa <- adjust_arrival_departure(poa)
 adjust_arrival_departure <- function(gtfs_data, min_lag = 20){
-  if(is.null(gtfs_data$stop_times$arrival_time))
-    gtfs_data$stop_times[, arrival_time := NA]
-  
-  if(is.null(gtfs_data$stop_times$departure_time))
-    gtfs_data$stop_times[, departure_time := NA]
-  
-  min_lag <- as.numeric(units::set_units(min_lag, "s"))
-  
-  gtfs_data$stop_times[, departure_time := string_to_seconds(departure_time)]
-  gtfs_data$stop_times[, arrival_time := string_to_seconds(arrival_time)]
+  # do not change input data by reference
+  gtfs_data$stop_times <- data.table::copy(gtfs_data$stop_times)
 
-  gtfs_data$stop_times[is.na(arrival_time) & !is.na(departure_time), 
+  if(is.null(gtfs_data$stop_times$arrival_time))
+    gtfs_data$stop_times[, arrival_time := NA_character_]
+
+  if(is.null(gtfs_data$stop_times$departure_time))
+    gtfs_data$stop_times[, departure_time := NA_character_]
+
+  min_lag <- as.numeric(units::set_units(min_lag, "s"))
+
+  gtfs_data <- stop_times_to_seconds(gtfs_data)
+
+  gtfs_data$stop_times[is.na(arrival_time) & !is.na(departure_time),
                        arrival_time := departure_time - min_lag]
 
-  gtfs_data$stop_times[is.na(departure_time) & !is.na(arrival_time), 
+  gtfs_data$stop_times[is.na(departure_time) & !is.na(arrival_time),
                        departure_time := arrival_time + min_lag]
 
-  gtfs_data$stop_times[!is.na(departure_time) & !is.na(arrival_time) & departure_time - arrival_time < min_lag, 
+  gtfs_data$stop_times[!is.na(departure_time) & !is.na(arrival_time) & departure_time - arrival_time < min_lag,
                        diff := (min_lag - departure_time + arrival_time) / 2]
-  
+
   gtfs_data$stop_times[!is.na(diff), arrival_time := arrival_time - diff]
   gtfs_data$stop_times[!is.na(diff), departure_time := departure_time + diff]
-  
+
   gtfs_data$stop_times[, diff := NULL]
 
   gtfs_data$stop_times[, departure_time := seconds_to_string(departure_time)]
   gtfs_data$stop_times[, arrival_time := seconds_to_string(arrival_time)]
-  
+
   return(gtfs_data)
 }

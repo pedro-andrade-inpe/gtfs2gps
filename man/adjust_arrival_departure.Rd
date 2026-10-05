@@ -31,6 +31,8 @@ column by subtracting a pre-defined `min_lag` from the departure.
 3. If there is an `arrival_time` and a `departure_time` but their difference
 is smaller than `min_lag`, it reduces the `arrival_time` and increases
 `departure_time` so that the difference will be exactly `min_lag`.
+
+The input GTFS data is not modified.
 }
 \examples{
 poa <- read_gtfs(system.file("extdata/poa.zip", package="gtfs2gps"))
